@@ -71,9 +71,9 @@ const steps = [
 ];
 
 const testimonials = [
-  { name: "Alice Johnson", feedback: "This app made teaching so much easier! My students love the quizzes." },
-  { name: "Mark Smith", feedback: "Perfect for collecting feedback in my business. Fast and reliable." },
-  { name: "Sophia Lee", feedback: "The best tool for surveys! Simple, clean, and powerful." },
+  { name: "Winston Lee", feedback: "This app made teaching so much easier! My students love the quizzes." },
+  { name: "BBM", feedback: "Perfect for collecting feedback in my business. Fast and reliable." },
+  { name: "Budoy", feedback: "The best tool for surveys! Simple, clean, and powerful." },
 ];
 
 const PublicHome = () => {
@@ -100,9 +100,9 @@ const PublicHome = () => {
             boxShadow: 6,
           }}
         >
-          <Typography variant={isSm ? "h4" : "h3"} fontWeight="bold" gutterBottom>
-            Welcome to My Questionnaire App
-          </Typography>
+         <Typography variant={isSm ? "h4" : "h3"} fontWeight="bold" gutterBottom>
+  Welcome to Answerly – Your Questionnaire App
+</Typography>
           <Typography variant={isSm ? "body1" : "h6"} paragraph sx={{ maxWidth: 640, mx: "auto", mb: 4 }}>
             Create, manage, and take questionnaires with ease. Gain instant insights and make learning or surveys interactive!
           </Typography>

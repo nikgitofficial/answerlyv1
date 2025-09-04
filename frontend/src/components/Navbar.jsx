@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from "react"; 
+import { keyframes } from "@mui/system";
 import {
   AppBar,
   Toolbar,
@@ -11,6 +12,7 @@ import {
   Menu,
   MenuItem,
   Avatar,
+  
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useNavigate } from "react-router-dom";
@@ -97,6 +99,12 @@ const Navbar = () => {
     },
   };
 
+  // ✅ Shimmer animation
+const shimmer = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
+
   return (
     <>
       <AppBar
@@ -116,22 +124,37 @@ const Navbar = () => {
             to={user ? "/home" : "/login"}
             sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}
           >
-            <Box
-              component="img"
-              src={logo}
-              alt="Logo"
-              sx={{ height: 40, width: 40, mr: 1 }}
-            />
+          <Box
+  component="img"
+  src={logo}
+  alt="Logo"
+  sx={{
+    height: 40,
+    width: 40,
+    mr: 1,
+    transition: "transform 1s ease-in-out",
+    "&:hover": {
+      transform: "rotate(360deg)",
+    },
+  }}
+/>
+
             <Typography
-              variant="h6"
-              sx={{
-                color: "#FFFFFF",
-                fontWeight: "bold",
-                letterSpacing: 1,
-              }}
-            >
-              Answerly
-            </Typography>
+  variant="h6"
+  sx={{
+    fontWeight: "bold",
+    letterSpacing: 1,
+    position: "relative",
+    color: "#fff", // Base color white
+    background: "linear-gradient(90deg, #fff 0%, #43a047 50%, #fff 100%)",
+    backgroundSize: "200% 100%",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    animation: `${shimmer} 3s infinite linear`,
+  }}
+>
+  Answerly
+</Typography>
           </Box>
 
           {/* Desktop Menu */}

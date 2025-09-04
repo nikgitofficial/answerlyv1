@@ -1,4 +1,3 @@
-// src/components/QuestionSetView.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../api/axios";
@@ -19,7 +18,9 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
+  Avatar,
 } from "@mui/material";
+import AnswerlyLogo from "../assets/logo.png"; // Ensure you have a logo image in this path
 
 const QuestionSetView = () => {
   const { slug } = useParams();
@@ -144,6 +145,42 @@ const QuestionSetView = () => {
           backgroundColor: theme.palette.background.paper,
         }}
       >
+        {/* ✅ App Logo + Name Header */}
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="center"
+          spacing={2}
+          sx={{ mb: 4 }}
+        >
+          <Avatar
+            src={AnswerlyLogo}
+            alt="Answerly Logo"
+            sx={{
+              width: isMobile ? 40 : 56,
+              height: isMobile ? 40 : 56,
+              
+              borderRadius: 2,
+            }}
+          />
+         <Typography
+  variant={isMobile ? "h5" : "h4"}
+  fontWeight={900}
+  sx={{
+    letterSpacing: 1,
+    fontFamily: "'Poppins', sans-serif",
+    color: "#1b5e20", // ✅ deep green
+    transition: "color 0.3s ease",
+    "&:hover": {
+      color: "#2e7d32", // ✅ lighter green on hover
+    },
+  }}
+>
+  Answerly
+</Typography>
+
+        </Stack>
+        <Divider sx={{ mb: 4 }} />
         {/* Title */}
         <Typography
           variant={isMobile ? "h5" : "h4"}
@@ -172,6 +209,7 @@ const QuestionSetView = () => {
 
         <Divider sx={{ mb: 4 }} />
 
+        {/* ✅ Rest of your code remains unchanged */}
         {submitted ? (
           <Fade in={submitted}>
             <Box textAlign="center" mt={3}>

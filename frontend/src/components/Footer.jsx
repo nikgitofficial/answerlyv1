@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import axios from "../api/axios";
 import {
   Box,
@@ -11,6 +11,11 @@ import {
   Divider,
   TextField,
   Button,
+  Rating,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";
@@ -22,20 +27,43 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const [ratingValue, setRatingValue] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   const handleSubscribe = async (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.currentTarget);
-  const email = formData.get("email");
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email");
 
-  try {
-    const res = await axios.post("/subscription", { email });
-    alert(res.data.msg || "Subscribed successfully!");
-  } catch (err) {
-    alert(err.response?.data?.msg || "Subscription failed");
-  }
-};
+    try {
+      const res = await axios.post("/subscription", { email });
+      alert(res.data.msg || "Subscribed successfully!");
+    } catch (err) {
+      alert(err.response?.data?.msg || "Subscription failed");
+    }
+  };
 
+  const handleRateUs = async () => {
+    if (ratingValue === 0) {
+      setModalMessage("Please select a rating first!");
+      setModalOpen(true);
+      return;
+    }
+    try {
+      const res = await axios.post("/rate", { rating: ratingValue });
+      setModalMessage(res.data.msg || "Thanks for your rating!");
+      setModalOpen(true);
+      setRatingValue(0);
+    } catch (err) {
+      setModalMessage(err.response?.data?.msg || "Failed to submit rating");
+      setModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
 
   return (
     <Box
@@ -45,14 +73,14 @@ export default function Footer() {
         mt: { xs: 6, md: 10 },
         pt: { xs: 6, md: 8 },
         pb: { xs: 4, md: 6 },
-        color: "#FFFFFF", // white text
+        color: "#FFFFFF",
         backgroundColor: "#2e7d32",
         borderRadius: 3,
         overflow: "hidden",
       }}
     >
       <Container maxWidth="lg" sx={{ position: "relative" }}>
-        {/* Top: Brand + Newsletter */}
+        {/* Top: Brand + Newsletter + Rate Us */}
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
           <Grid item xs={12} md={5}>
             <Stack spacing={1.5}>
@@ -66,8 +94,35 @@ export default function Footer() {
                 Create, share, and analyze questionnaires easily. Modern, fast,
                 and user-friendly.
               </Typography>
+
+              {/* Rate Us */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ pt: 1 }}>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Rate Us:
+                </Typography>
+                <Rating
+                  name="rate-us"
+                  value={ratingValue}
+                  onChange={(event, newValue) => setRatingValue(newValue)}
+                  sx={{ color: "#FFD700" }}
+                />
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleRateUs}
+                  sx={{
+                    ml: 1,
+                    bgcolor: "#FFD700",
+                    color: "#2e7d32",
+                    "&:hover": { bgcolor: "#FFC107" },
+                  }}
+                >
+                  Submit
+                </Button>
+              </Stack>
+
               <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
-                {[
+                {[ // Social icons remain unchanged
                   { icon: FacebookIcon, href: "https://www.facebook.com/nikkomirafuentespaceno", label: "Facebook" },
                   { icon: TwitterIcon, href: "https://twitter.com/yourprofile", label: "Twitter" },
                   { icon: InstagramIcon, href: "https://www.instagram.com/yourprofile", label: "Instagram" },
@@ -80,7 +135,7 @@ export default function Footer() {
                     <IconButton
                       aria-label={item.label}
                       size="small"
-                      sx={{ color: "#FFFFFF", "&:hover": { color: "#FFD700" } }} // yellow hover
+                      sx={{ color: "#FFFFFF", "&:hover": { color: "#FFD700" } }}
                     >
                       <item.icon fontSize="small" />
                     </IconButton>
@@ -101,7 +156,7 @@ export default function Footer() {
                 gap: 1.5,
                 p: 2,
                 borderRadius: 3,
-                backgroundColor: "rgba(255,255,255,0.1)", // slight transparent on green
+                backgroundColor: "rgba(255,255,255,0.1)",
                 border: "1px solid",
                 borderColor: "rgba(255,255,255,0.3)",
               }}
@@ -143,9 +198,9 @@ export default function Footer() {
           </Grid>
         </Grid>
 
+        {/* rest of Footer remains unchanged */}
         <Divider sx={{ my: { xs: 4, md: 6 }, borderColor: "rgba(255,255,255,0.3)" }} />
 
-        {/* Middle: Link columns */}
         <Grid container spacing={{ xs: 3, md: 6 }}>
           {[
             { title: "App", links: [
@@ -181,7 +236,6 @@ export default function Footer() {
 
         <Divider sx={{ my: { xs: 4, md: 6 }, borderColor: "rgba(255,255,255,0.3)" }} />
 
-        {/* Bottom: Badge + Meta */}
         <Stack
           direction={{ xs: "column", sm: "row" }}
           alignItems={{ xs: "flex-start", sm: "center" }}
@@ -189,8 +243,9 @@ export default function Footer() {
           spacing={2}
         >
           <Typography variant="body2" sx={{ opacity: 0.8 }}>
-            © {year} Answerly. All rights reserved.
-          </Typography>
+  © {year} Answerly. All rights reserved. | Created by Nikko MP
+</Typography>
+
 
           <Stack direction="row" spacing={2}>
             {[
@@ -212,6 +267,20 @@ export default function Footer() {
             ))}
           </Stack>
         </Stack>
+
+        {/* Modal for thank you / messages */}
+        <Dialog open={modalOpen} onClose={handleCloseModal}>
+          <DialogTitle>Message</DialogTitle>
+          <DialogContent>
+            <Typography>{modalMessage}</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal} variant="contained" sx={{ bgcolor: "#2e7d32", color: "#FFF", "&:hover": { bgcolor: "#1b4d21" } }}>
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
+
       </Container>
     </Box>
   );

@@ -5,9 +5,9 @@ import EmojiObjectsIcon from "@mui/icons-material/EmojiObjects";
 import SecurityIcon from "@mui/icons-material/Security";
 
 const teamMembers = [
-  { name: "Alice Johnson", role: "Founder & CEO" },
-  { name: "Mark Smith", role: "Lead Developer" },
-  { name: "Sophia Lee", role: "UI/UX Designer" },
+  { name: "Assa Kahh", role: "Founder & CEO" },
+  { name: "Nikko MP", role: "Lead Developer" },
+  { name: "Nah Lee Phong Koh", role: "UI/UX Designer" },
 ];
 
 const missionItems = [

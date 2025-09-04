@@ -29,6 +29,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { CalendarToday } from "@mui/icons-material"; // ✅ Added for calendar icon
 
 const COLORS = ["#60a5fa", "#4ade80", "#facc15", "#f87171", "#a78bfa"];
 
@@ -48,6 +49,14 @@ const Home = () => {
     mostAnsweredQuestion: "",
     surveyCompletionRate: 0,
   });
+
+  // ✅ State for date & time
+  const [dateTime, setDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setDateTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -76,14 +85,12 @@ const Home = () => {
           const answers = answersRes.data.answers;
           answersCount += answers.length;
 
-          // Question distribution for bar chart
           questionDistribution.push({
             name: set.title,
             questions: set.questions.length,
             answers: answers.length,
           });
 
-          // Survey responses for pie chart and analytics
           set.questions.forEach((q) => {
             const counts = {};
             answers.forEach((ans) => {
@@ -92,11 +99,9 @@ const Home = () => {
                 : ans.answer[q._id];
               counts[ansValue] = (counts[ansValue] || 0) + 1;
 
-              // Count for most answered question
               questionAnswerCount[q.text] =
                 (questionAnswerCount[q.text] || 0) + 1;
 
-              // Count for average score
               if (ansValue === q.answer) totalCorrectAnswers += 1;
             });
             surveyResponses.push({
@@ -107,7 +112,6 @@ const Home = () => {
           });
         }
 
-        // Calculate analytics cards
         const averageScore =
           totalPossibleAnswers > 0
             ? (totalCorrectAnswers / totalPossibleAnswers) * 100
@@ -144,7 +148,6 @@ const Home = () => {
       </Box>
     );
 
-  // Dashboard stats cards
   const stats = [
     {
       title: "Total Sets Created",
@@ -166,7 +169,6 @@ const Home = () => {
     },
   ];
 
-  // ✅ Summary analytics cards (integration you asked for)
   const summaryAnalytics = [
     {
       title: "Average Score (%)",
@@ -196,6 +198,32 @@ const Home = () => {
         minHeight: "100vh",
       }}
     >
+      {/* ✅ Welcome + Date + Time */}
+      <Box sx={{ textAlign: "center", mb: 4 }}>
+        <Typography variant="h5" fontWeight={600}>
+          Welcome back 👋
+        </Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+          <CalendarToday sx={{ color: theme.palette.primary.main, mr: 1 }} />
+          <Typography variant="subtitle1">
+            {dateTime.toLocaleDateString(undefined, {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </Typography>
+        </Box>
+        <Typography
+          variant="h6"
+          fontWeight={700}
+          sx={{ mt: 1 }}
+          color="secondary"
+        >
+          {dateTime.toLocaleTimeString()}
+        </Typography>
+      </Box>
+
       <Typography
         variant={isMobile ? "h4" : "h3"}
         gutterBottom

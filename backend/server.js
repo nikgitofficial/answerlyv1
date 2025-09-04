@@ -9,6 +9,7 @@ import questionSetRoutes from "./routes/questionSetRoutes.js";
 import adminRoutes from "./routes/admin.js";
 import profileRoutes from './routes/profileRoutes.js';
 import contactRoutes from "./routes/contactRoutes.js";
+import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 
 
 
@@ -51,7 +52,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/question-sets", questionSetRoutes);
 app.use("/api/admin", adminRoutes);
 app.use('/api/profile', profileRoutes);
-app.use("/api/contact", contactRoutes)
+app.use("/api/contact", contactRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 
 

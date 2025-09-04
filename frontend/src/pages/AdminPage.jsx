@@ -44,6 +44,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import PeopleIcon from "@mui/icons-material/People";
 import QuizIcon from "@mui/icons-material/Quiz";
 import MailIcon from "@mui/icons-material/Mail";
+import SubscriptionsIcon from "@mui/icons-material/Subscriptions";
 
 const drawerWidth = 260;
 
@@ -58,6 +59,7 @@ const AdminPage = () => {
     users: [],
     questions: [],
     answers: [],
+    subscriptions: [],
   });
   const [messages, setMessages] = useState([]);
   const [newMessageCount, setNewMessageCount] = useState(0);
@@ -76,21 +78,22 @@ const AdminPage = () => {
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
-  // Fetch stats & messages
+  // Fetch stats & messages & subscriptions
   const fetchStatsAndMessages = async () => {
     try {
-      const [statsRes, messagesRes] = await Promise.all([
+      const [statsRes, messagesRes, subsRes] = await Promise.all([
         api.get("/admin/stats"),
         api.get("/contact"),
+        api.get("/subscriptions"), // <--- fetch subscriptions
       ]);
-      setStats(statsRes.data);
+      setStats({
+        ...statsRes.data,
+        subscriptions: subsRes.data, // <--- store subscriptions
+      });
       setMessages(messagesRes.data);
 
-      if (selectedTable !== "messages") {
-        setNewMessageCount(messagesRes.data.length);
-      } else {
-        setNewMessageCount(0);
-      }
+      if (selectedTable !== "messages") setNewMessageCount(messagesRes.data.length);
+      else setNewMessageCount(0);
     } catch (err) {
       console.error("❌ Failed to fetch data:", err.response?.data || err.message);
     } finally {
@@ -165,6 +168,11 @@ const AdminPage = () => {
               </Badge>
             ),
             action: () => setSelectedTable("messages"),
+          },
+          {
+            text: "Subscriptions",
+            icon: <SubscriptionsIcon />,
+            action: () => setSelectedTable("subscriptions"),
           },
           { text: "Logout", icon: <PeopleIcon />, action: handleLogout },
         ].map((item) => (
@@ -342,6 +350,13 @@ const AdminPage = () => {
                   gradient: "linear-gradient(135deg, #ff416c, #ff4b2b)",
                   tooltip: "View contact messages",
                   onClick: () => setSelectedTable("messages"),
+                },
+                {
+                  label: "Subscriptions",
+                  value: stats.subscriptions.length,
+                  gradient: "linear-gradient(135deg, #ff7e5f, #feb47b)",
+                  tooltip: "View all subscribers",
+                  onClick: () => setSelectedTable("subscriptions"),
                 },
               ].map((card) => (
                 <Grid item xs={12} sm={6} md={3} key={card.label}>
@@ -530,72 +545,60 @@ const AdminPage = () => {
                 </TableContainer>
               </>
             )}
+
+            {/* Subscriptions Table */}
+            {selectedTable === "subscriptions" && (
+              <>
+                <Typography variant="h5" gutterBottom>
+                  💳 Subscriptions
+                </Typography>
+                <TableContainer component={Paper} sx={{ mb: 4, boxShadow: 3 }}>
+                  <Table>
+                    <TableHead sx={{ bgcolor: theme.palette.grey[100] }}>
+                      <TableRow>
+                        <TableCell>User</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Plan</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Subscribed At</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {stats.subscriptions.map((s) => (
+                        <TableRow key={s._id} hover>
+                          <TableCell>{s.username || s.user?.username}</TableCell>
+                          <TableCell>{s.email || s.user?.email}</TableCell>
+                          <TableCell>{s.plan}</TableCell>
+                          <TableCell>
+                            <Badge
+                              color={s.status === "active" ? "success" : "warning"}
+                              variant="dot"
+                            >
+                              {s.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{new Date(s.createdAt).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
+            )}
           </>
         )}
 
-        {/* Modals */}
-        {/* Question Modal */}
-        <Dialog
-          open={questionModalOpen}
-          onClose={handleCloseQuestionModal}
-          fullWidth
-          maxWidth="sm"
-        >
-          <DialogTitle>Question Details</DialogTitle>
-          <DialogContent dividers>
-            {selectedQuestion && (
-              <>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  Title:
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {selectedQuestion.title}
-                </Typography>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  Slug / ID:
-                </Typography>
-                <Typography variant="body2" gutterBottom>
-                  {selectedQuestion.slug || selectedQuestion._id}
-                </Typography>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  Created At:
-                </Typography>
-                <Typography variant="body2" gutterBottom>
-                  {new Date(selectedQuestion.createdAt).toLocaleString()}
-                </Typography>
-                <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                  Updated At:
-                </Typography>
-                <Typography variant="body2" gutterBottom>
-                  {new Date(selectedQuestion.updatedAt).toLocaleString()}
-                </Typography>
-              </>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseQuestionModal}>Close</Button>
-          </DialogActions>
-        </Dialog>
-
         {/* Delete Message Modal */}
-        <Dialog
-          open={deleteModalOpen}
-          onClose={() => !deleteLoading && setDeleteModalOpen(false)}
-        >
-          <DialogTitle>Confirm Delete Message</DialogTitle>
-          <DialogContent>
-            <Typography>Are you sure you want to delete this message?</Typography>
-          </DialogContent>
+        <Dialog open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>Are you sure you want to delete this message?</DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteModalOpen(false)} disabled={deleteLoading}>
-              Cancel
-            </Button>
+            <Button onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
             <Button
-              variant="contained"
-              color="error"
               onClick={confirmDeleteMessage}
+              color="error"
+              variant="contained"
               disabled={deleteLoading}
-              startIcon={deleteLoading && <CircularProgress size={20} />}
             >
               {deleteLoading ? "Deleting..." : "Delete"}
             </Button>
@@ -603,27 +606,44 @@ const AdminPage = () => {
         </Dialog>
 
         {/* Delete All Answers Modal */}
-        <Dialog
-          open={deleteAllModalOpen}
-          onClose={() => !deleteLoading && setDeleteAllModalOpen(false)}
-        >
+        <Dialog open={deleteAllModalOpen} onClose={() => setDeleteAllModalOpen(false)}>
           <DialogTitle>Confirm Delete All Answers</DialogTitle>
           <DialogContent>
-            <Typography>Are you sure you want to delete all answers?</Typography>
+            Are you sure you want to delete <strong>all answers</strong>? This cannot be undone.
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteAllModalOpen(false)} disabled={deleteLoading}>
-              Cancel
-            </Button>
+            <Button onClick={() => setDeleteAllModalOpen(false)}>Cancel</Button>
             <Button
-              variant="contained"
-              color="error"
               onClick={confirmDeleteAllAnswers}
+              color="error"
+              variant="contained"
               disabled={deleteLoading}
-              startIcon={deleteLoading && <CircularProgress size={20} />}
             >
               {deleteLoading ? "Deleting..." : "Delete All"}
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Question Modal */}
+        <Dialog open={questionModalOpen} onClose={handleCloseQuestionModal} fullWidth maxWidth="sm">
+          <DialogTitle>Question Details</DialogTitle>
+          <DialogContent>
+            {selectedQuestion && (
+              <>
+                <Typography variant="h6" mb={1}>
+                  {selectedQuestion.title}
+                </Typography>
+                <Typography variant="body2" mb={2}>
+                  {selectedQuestion.description}
+                </Typography>
+                <Typography variant="subtitle2">
+                  Correct Answer: <strong>{selectedQuestion.answer}</strong>
+                </Typography>
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseQuestionModal}>Close</Button>
           </DialogActions>
         </Dialog>
       </Box>

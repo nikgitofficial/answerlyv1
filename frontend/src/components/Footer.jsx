@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "../api/axios";
 import {
   Box,
   Container,
@@ -22,12 +23,19 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 export default function Footer() {
   const year = new Date().getFullYear();
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email");
-    console.log("Subscribe:", email);
-  };
+  const handleSubscribe = async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.currentTarget);
+  const email = formData.get("email");
+
+  try {
+    const res = await axios.post("/subscription", { email });
+    alert(res.data.msg || "Subscribed successfully!");
+  } catch (err) {
+    alert(err.response?.data?.msg || "Subscription failed");
+  }
+};
+
 
   return (
     <Box

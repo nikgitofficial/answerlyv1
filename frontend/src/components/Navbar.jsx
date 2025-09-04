@@ -12,7 +12,6 @@ import {
   Menu,
   MenuItem,
   Avatar,
-  
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useNavigate } from "react-router-dom";
@@ -100,10 +99,10 @@ const Navbar = () => {
   };
 
   // ✅ Shimmer animation
-const shimmer = keyframes`
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-`;
+  const shimmer = keyframes`
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  `;
 
   return (
     <>
@@ -124,37 +123,37 @@ const shimmer = keyframes`
             to={user ? "/home" : "/login"}
             sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}
           >
-          <Box
-  component="img"
-  src={logo}
-  alt="Logo"
-  sx={{
-    height: 40,
-    width: 40,
-    mr: 1,
-    transition: "transform 1s ease-in-out",
-    "&:hover": {
-      transform: "rotate(360deg)",
-    },
-  }}
-/>
+            <Box
+              component="img"
+              src={logo}
+              alt="Logo"
+              sx={{
+                height: 40,
+                width: 40,
+                mr: 1,
+                transition: "transform 1s ease-in-out",
+                "&:hover": {
+                  transform: "rotate(360deg)",
+                },
+              }}
+            />
 
             <Typography
-  variant="h6"
-  sx={{
-    fontWeight: "bold",
-    letterSpacing: 1,
-    position: "relative",
-    color: "#fff", // Base color white
-    background: "linear-gradient(90deg, #fff 0%, #43a047 50%, #fff 100%)",
-    backgroundSize: "200% 100%",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    animation: `${shimmer} 3s infinite linear`,
-  }}
->
-  Answerly
-</Typography>
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                letterSpacing: 1,
+                position: "relative",
+                color: "#fff", // Base color white
+                background: "linear-gradient(90deg, #fff 0%, #43a047 50%, #fff 100%)",
+                backgroundSize: "200% 100%",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                animation: `${shimmer} 3s infinite linear`,
+              }}
+            >
+              Answerly
+            </Typography>
           </Box>
 
           {/* Desktop Menu */}
@@ -210,42 +209,55 @@ const shimmer = keyframes`
                 >
                   Welcome : {user.username}
                 </Typography>
-                <IconButton onClick={(e) => setProfileMenu(e.currentTarget)}>
-                  <Avatar
-                    src={user.profilePic || ""}
-                    alt={user.username}
-                    sx={{ width: 40, height: 40 }}
-                  >
-                    {user.username?.[0]?.toUpperCase()}
-                  </Avatar>
-                </IconButton>
-                <Menu
-                  anchorEl={profileMenu}
-                  open={Boolean(profileMenu)}
-                  onClose={() => setProfileMenu(null)}
+                <Box
+                  onMouseEnter={(e) => setProfileMenu(e.currentTarget)}
+                  onMouseLeave={() => setProfileMenu(null)}
+                  sx={{ display: "flex", alignItems: "center" }}
                 >
-                  <MenuItem disabled>
-                    <Typography variant="body2" sx={{ color: "gray" }}>
-                      {user.email}
-                    </Typography>
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      navigate("/profile");
-                      setProfileMenu(null);
+                  <IconButton
+                    disableRipple
+                    onClick={(e) => setProfileMenu(e.currentTarget)} // ✅ also open on click for touch devices
+                  >
+                    <Avatar
+                      src={user.profilePic || ""}
+                      alt={user.username}
+                      sx={{ width: 40, height: 40 }}
+                    >
+                      {user.username?.[0]?.toUpperCase()}
+                    </Avatar>
+                  </IconButton>
+                  <Menu
+                    anchorEl={profileMenu}
+                    open={Boolean(profileMenu)}
+                    onClose={() => setProfileMenu(null)}
+                    MenuListProps={{
+                      onMouseEnter: () => setProfileMenu(profileMenu),
+                      onMouseLeave: () => setProfileMenu(null),
                     }}
                   >
-                    Profile
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      handleLogout();
-                      setProfileMenu(null);
-                    }}
-                  >
-                    Logout
-                  </MenuItem>
-                </Menu>
+                    <MenuItem disabled>
+                      <Typography variant="body2" sx={{ color: "gray" }}>
+                        {user.email}
+                      </Typography>
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        navigate("/profile");
+                        setProfileMenu(null);
+                      }}
+                    >
+                      Profile
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        handleLogout();
+                        setProfileMenu(null);
+                      }}
+                    >
+                      Logout
+                    </MenuItem>
+                  </Menu>
+                </Box>
               </>
             )}
           </Stack>

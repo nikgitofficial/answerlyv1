@@ -144,7 +144,8 @@ const Home = () => {
   if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
-        <CircularProgress size={60} thickness={5} color="secondary" />
+        <CircularProgress size={60} thickness={5} color="primary" />
+
       </Box>
     );
 

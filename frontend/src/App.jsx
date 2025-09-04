@@ -38,6 +38,7 @@ import QuestionSetView from "./components/QuestionSetView";
 import AdminPage from "./pages/AdminPage";
 import Profile from "./pages/Profile";
 import Support from "./pages/Support";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // ✅ Layout
 import Layout from "./components/Layout";  
@@ -125,6 +126,7 @@ const App = () => {
         <Route path="/sitemap" element={<Layout><Sitemap /></Layout>} />
         <Route path="/status" element={<Layout><Status /></Layout>} />
         <Route path="/terms" element={<Layout><Terms /></Layout>} />
+        <Route path="/forgot-password" element={<Layout><ForgotPassword /></Layout>} />
 
         {/* Protected routes with Layout */}
         <Route path="/all-answers/:slug" element={<Layout><ProtectedRoute user={user}><AllAnswers /></ProtectedRoute></Layout>} />

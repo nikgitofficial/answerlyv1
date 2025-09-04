@@ -28,6 +28,11 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 // ✅ Import Navbar
 import Navbar from "../components/Navbar";
 
+// ✅ Import for Export
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; // ✅ correct import
+
 const AllAnswers = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -88,6 +93,38 @@ const AllAnswers = () => {
     );
   }, [data, userFilter]);
 
+  // ✅ Export to Excel
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(
+      aggregatedAnswers.map((u) => ({
+        User: u.user,
+        Score: u.correctCount,
+        "Total Questions": u.totalQuestions,
+        "Submitted At": new Date(u.submittedAt).toLocaleString(),
+      }))
+    );
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "SummaryScores");
+    XLSX.writeFile(workbook, `answers_${slug}.xlsx`);
+  };
+
+  // ✅ Export to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text(`Answers for Set: ${data.set.title}`, 14, 15);
+    autoTable(doc, {
+      head: [["User", "Score", "Total Questions", "Submitted At"]],
+      body: aggregatedAnswers.map((u) => [
+        u.user,
+        u.correctCount,
+        u.totalQuestions,
+        new Date(u.submittedAt).toLocaleString(),
+      ]),
+      startY: 20,
+    });
+    doc.save(`answers_${slug}.pdf`);
+  };
+
   if (loading)
     return (
       <>
@@ -138,7 +175,7 @@ const AllAnswers = () => {
           Answers for Set: {data.set.title}
         </Typography>
 
-        {/* Filter */}
+        {/* Filter + Export Buttons */}
         <Stack
           direction={isMobile ? "column" : "row"}
           spacing={2}
@@ -153,6 +190,16 @@ const AllAnswers = () => {
             onChange={(e) => setUserFilter(e.target.value)}
             fullWidth={isMobile}
           />
+
+          {/* ✅ Export Buttons */}
+          <Stack direction="row" spacing={2}>
+            <Button variant="contained" color="success" onClick={exportToExcel}>
+              Export Excel
+            </Button>
+            <Button variant="contained" color="error" onClick={exportToPDF}>
+              Export PDF
+            </Button>
+          </Stack>
         </Stack>
 
         {/* ✅ Aggregated Scores Table */}

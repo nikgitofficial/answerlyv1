@@ -1,5 +1,6 @@
 // src/pages/FAQ.jsx
 import React, { useRef, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -10,7 +11,7 @@ import {
   Button,
   useTheme,
   useMediaQuery,
-} from "@mui/material";
+  } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 const faqList = [
@@ -137,22 +138,25 @@ const FAQ = () => {
           >
             Reach out to our support team and we'll be happy to help you.
           </Typography>
-      <Button
+    <Button
+  component={Link}
+  to="/contact"
   variant="contained"
   size="large"
   sx={{
     px: 6,
     py: 1.5,
     borderRadius: 3,
-    background: "linear-gradient(90deg, #087f23, #4CAF50)", // green gradient
+    background: "linear-gradient(90deg, #087f23, #4CAF50)",
     color: "#fff",
     "&:hover": {
-      background: "linear-gradient(90deg, #065a18, #388E3C)", // darker green on hover
+      background: "linear-gradient(90deg, #065a18, #388E3C)",
     },
   }}
 >
   Contact Support
 </Button>
+
         </Box>
       </FadeUpOnScroll>
     </Container>

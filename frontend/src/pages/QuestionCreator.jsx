@@ -37,6 +37,7 @@ const QuestionCreator = () => {
   const { user } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [questions, setQuestions] = useState([{ text: "", options: "", answer: "" }]);
+  const [timeLimit, setTimeLimit] = useState(60); // <--- Timer for the whole set
   const [shareLink, setShareLink] = useState("");
   const [mySets, setMySets] = useState([]);
   const [filteredSets, setFilteredSets] = useState([]);
@@ -97,15 +98,18 @@ const QuestionCreator = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const payloadQuestions = questions.map((q) => ({
+        text: q.text,
+        options: q.options.split(",").map((o) => o.trim()),
+        answer: q.answer,
+      }));
+
       let res;
       if (editSet) {
         res = await axios.put(`/question-sets/${editSet._id}`, {
           title,
-          questions: questions.map((q) => ({
-            text: q.text,
-            options: q.options.split(",").map((o) => o.trim()),
-            answer: q.answer,
-          })),
+          questions: payloadQuestions,
+          timeLimit, // <--- Include timer
         });
         setMySets((prev) =>
           prev.map((s) => (s._id === editSet._id ? res.data : s))
@@ -116,11 +120,8 @@ const QuestionCreator = () => {
       } else {
         res = await axios.post("/question-sets", {
           title,
-          questions: questions.map((q) => ({
-            text: q.text,
-            options: q.options.split(",").map((o) => o.trim()),
-            answer: q.answer,
-          })),
+          questions: payloadQuestions,
+          timeLimit, // <--- Include timer
           isPublic: true,
         });
         setShareLink(`${window.location.origin}/set/${res.data.slug}`);
@@ -132,6 +133,7 @@ const QuestionCreator = () => {
       }
       setTitle("");
       setQuestions([{ text: "", options: "", answer: "" }]);
+      setTimeLimit(60); // reset timer to default
     } catch (err) {
       console.error(err);
       alert("Error saving set");
@@ -165,6 +167,7 @@ const QuestionCreator = () => {
   const handleEdit = (set) => {
     setEditSet(set);
     setTitle(set.title);
+    setTimeLimit(set.timeLimit || 60); // <--- Load timer value when editing
     setQuestions(
       set.questions.map((q) => ({
         text: q.text,
@@ -180,6 +183,7 @@ const QuestionCreator = () => {
     const worksheet = XLSX.utils.json_to_sheet(
       filteredSets.map((set) => ({
         "Set Name": set.title,
+        "Time Limit (seconds)": set.timeLimit || 60, // include timer
         "Questions": set.questions.map(q => q.text).join(" | "),
         "Choices": set.questions.map(q => q.options.join(", ")).join(" | "),
         "Correct Answers": set.questions.map(q => q.answer).join(" | "),
@@ -194,11 +198,12 @@ const QuestionCreator = () => {
   // ✅ Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text("My Question Sets", 14, 15);
+    doc.text("Question Sets", 14, 15);
     autoTable(doc, {
-      head: [["Set Name", "Questions", "Choices", "Correct Answers", "Created Date"]],
+      head: [["Set Name", "Time Limit", "Questions", "Choices", "Correct Answers", "Created Date"]],
       body: filteredSets.map((set) => [
         set.title,
+        set.timeLimit || 60, // include timer
         set.questions.map(q => q.text).join(" | "),
         set.questions.map(q => q.options.join(", ")).join(" | "),
         set.questions.map(q => q.answer).join(" | "),
@@ -282,6 +287,7 @@ const QuestionCreator = () => {
               <TableCell><b>Question</b></TableCell>
               <TableCell><b>Choices</b></TableCell>
               <TableCell><b>Correct Answer</b></TableCell>
+              <TableCell><b>Time Limit</b></TableCell> {/* New column */}
               <TableCell><b>Created Date</b></TableCell>
               <TableCell><b>Actions</b></TableCell>
               <TableCell><b>Link</b></TableCell>
@@ -294,6 +300,7 @@ const QuestionCreator = () => {
                 <TableCell>{set.questions.map((q, idx) => <div key={idx}>{idx + 1}. {q.text}</div>)}</TableCell>
                 <TableCell>{set.questions.map((q, idx) => <div key={idx}>{idx + 1}. {q.options.join(", ")}</div>)}</TableCell>
                 <TableCell>{set.questions.map((q, idx) => <div key={idx}>{idx + 1}. {q.answer}</div>)}</TableCell>
+                <TableCell>{set.timeLimit || 60} s</TableCell> {/* Show timer */}
                 <TableCell>{set.createdAt ? new Date(set.createdAt).toLocaleDateString() : "-"}</TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
@@ -335,9 +342,18 @@ const QuestionCreator = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 sx={{ mb: 1 }}
               />
+              {/* Timer input */}
+              <TextField
+                fullWidth
+                label="Time Limit for All Questions (seconds)"
+                type="number"
+                value={timeLimit}
+                onChange={(e) => setTimeLimit(Number(e.target.value))}
+                sx={{ mb: 3 }}
+              />
               {mode === "Create" && (
                 <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-                  Please name "survey" for surveys
+                  Please name set title to "survey" for surveys
                 </Typography>
               )}
               <Stack spacing={3}>

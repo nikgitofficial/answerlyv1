@@ -11,6 +11,7 @@ import profileRoutes from './routes/profileRoutes.js';
 import contactRoutes from "./routes/contactRoutes.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import ratingRoutes from "./routes/ratingRoutes.js";
+import fileRoutes from './routes/fileRoutes.js';
 
 
 
@@ -56,6 +57,7 @@ app.use('/api/profile', profileRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api", ratingRoutes);
+app.use('/api/files', fileRoutes);
 
 
 

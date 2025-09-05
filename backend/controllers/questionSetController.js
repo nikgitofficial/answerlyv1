@@ -4,12 +4,13 @@ import Answer from "../models/Answer.js";
 // ✅ Create a new set
 export const createSet = async (req, res) => {
   try {
-    const { title, questions, isPublic } = req.body;
+    const { title, questions, isPublic, timeLimit } = req.body;
     const newSet = new QuestionSet({
       user: req.user.id,
       title,
       questions,
       isPublic: isPublic || false,
+      timeLimit: timeLimit || 60, // <-- save timer
     });
     await newSet.save();
     res.status(201).json(newSet);
@@ -22,7 +23,7 @@ export const createSet = async (req, res) => {
 export const updateSet = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, questions, isPublic } = req.body;
+    const { title, questions, isPublic, timeLimit } = req.body;
 
     const set = await QuestionSet.findById(id);
     if (!set) return res.status(404).json({ msg: "Set not found" });
@@ -31,6 +32,7 @@ export const updateSet = async (req, res) => {
     set.title = title || set.title;
     set.questions = questions || set.questions;
     set.isPublic = isPublic !== undefined ? isPublic : set.isPublic;
+    set.timeLimit = timeLimit || set.timeLimit; // <-- update timer
 
     await set.save();
     res.json(set);
@@ -38,6 +40,7 @@ export const updateSet = async (req, res) => {
     res.status(500).json({ msg: err.message });
   }
 };
+
 
 // delete a set
 export const deleteSet = async (req, res) => {

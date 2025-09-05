@@ -20,7 +20,7 @@ import {
   FormControl,
   Avatar,
 } from "@mui/material";
-import AnswerlyLogo from "../assets/logo.png"; // Ensure you have a logo image in this path
+import AnswerlyLogo from "../assets/logo.png";
 
 const QuestionSetView = () => {
   const { slug } = useParams();
@@ -33,6 +33,10 @@ const QuestionSetView = () => {
   const [userAvailable, setUserAvailable] = useState(null);
   const [checkingUser, setCheckingUser] = useState(false);
 
+  // --- TIMER STATES ---
+  const [timer, setTimer] = useState(null);
+  const [timeUp, setTimeUp] = useState(false);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -41,6 +45,11 @@ const QuestionSetView = () => {
       try {
         const res = await axios.get(`/question-sets/${slug}`);
         setSetData(res.data);
+
+        // Only initialize timer if not a survey and has a timeLimit
+        if (res.data.title.toLowerCase() !== "survey" && res.data.timeLimit) {
+          setTimer(res.data.timeLimit);
+        }
       } catch (err) {
         console.error("Error fetching question set:", err);
       } finally {
@@ -49,6 +58,28 @@ const QuestionSetView = () => {
     };
     if (slug) fetchSet();
   }, [slug]);
+
+  // --- TIMER COUNTDOWN & AUTO-SUBMIT ---
+  useEffect(() => {
+    if (
+      timer === null ||
+      submitted ||
+      (setData && setData.title.toLowerCase() === "survey")
+    )
+      return;
+
+    if (timer <= 0) {
+      setTimeUp(true);
+      handleSubmit(true); // auto-submit due to timeout
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timer, submitted, setData]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -82,33 +113,55 @@ const QuestionSetView = () => {
     ? setData.questions.every((q) => answers[q._id])
     : false;
 
-  const handleSubmit = async () => {
-    if (!userName.trim()) {
-      alert("Please enter your name before submitting.");
-      return;
-    }
-    if (!allQuestionsAnswered) {
-      alert("Please answer all questions before submitting.");
-      return;
-    }
-    if (userAvailable === false) {
-      alert("Username already exists. Please choose a different name.");
-      return;
+  const handleSubmit = async (timeExpired = false) => {
+    if (submitted) return;
+
+    if (!timeExpired) {
+      if (!userName.trim()) {
+        alert("Please enter your name before submitting.");
+        return;
+      }
+      if (!allQuestionsAnswered) {
+        alert("Please answer all questions before submitting.");
+        return;
+      }
+      if (userAvailable === false) {
+        alert("Username already exists. Please choose a different name.");
+        return;
+      }
     }
 
     try {
-      await axios.post(`/question-sets/${slug}/answers`, { answers, userName });
+      const finalAnswers = { ...answers };
+      setData.questions.forEach((q) => {
+        if (!finalAnswers[q._id]) finalAnswers[q._id] = "";
+      });
 
+      await axios.post(`/question-sets/${slug}/answers`, {
+        answers: finalAnswers,
+        userName,
+      });
+
+      // Only calculate score if not a survey
       if (setData.title.toLowerCase() !== "survey") {
         let correctCount = 0;
         setData.questions.forEach((q) => {
-          if (answers[q._id] === q.answer) correctCount += 1;
+          if (finalAnswers[q._id] === q.answer) correctCount += 1;
         });
-        const percentage = ((correctCount / setData.questions.length) * 100).toFixed(2);
-        setScore({ correct: correctCount, total: setData.questions.length, percentage });
+        const percentage = (
+          (correctCount / setData.questions.length) *
+          100
+        ).toFixed(2);
+        setScore({
+          correct: correctCount,
+          total: setData.questions.length,
+          percentage,
+        });
       }
 
+      setAnswers(finalAnswers);
       setSubmitted(true);
+      setTimeUp(true);
     } catch (err) {
       console.error("Error submitting answers:", err);
     }
@@ -134,6 +187,7 @@ const QuestionSetView = () => {
   if (!userName.trim()) disabledReason = "Please enter your name";
   else if (!allQuestionsAnswered) disabledReason = "Answer all questions before submitting";
   else if (userAvailable === false) disabledReason = "Username already exists";
+  else if (timeUp) disabledReason = "Time's up!";
 
   return (
     <Box p={isMobile ? 2 : 5} maxWidth="800px" mx="auto">
@@ -145,7 +199,7 @@ const QuestionSetView = () => {
           backgroundColor: theme.palette.background.paper,
         }}
       >
-        {/* ✅ App Logo + Name Header */}
+        {/* App Logo + Name */}
         <Stack
           direction="row"
           alignItems="center"
@@ -159,28 +213,41 @@ const QuestionSetView = () => {
             sx={{
               width: isMobile ? 40 : 56,
               height: isMobile ? 40 : 56,
-              
               borderRadius: 2,
             }}
           />
-         <Typography
-  variant={isMobile ? "h5" : "h4"}
-  fontWeight={900}
-  sx={{
-    letterSpacing: 1,
-    fontFamily: "'Poppins', sans-serif",
-    color: "#1b5e20", // ✅ deep green
-    transition: "color 0.3s ease",
-    "&:hover": {
-      color: "#2e7d32", // ✅ lighter green on hover
-    },
-  }}
->
-  Answerly
-</Typography>
-
+          <Typography
+            variant={isMobile ? "h5" : "h4"}
+            fontWeight={900}
+            sx={{
+              letterSpacing: 1,
+              fontFamily: "'Poppins', sans-serif",
+              color: "#1b5e20",
+              transition: "color 0.3s ease",
+              "&:hover": { color: "#2e7d32" },
+            }}
+          >
+            Answerly
+          </Typography>
         </Stack>
         <Divider sx={{ mb: 4 }} />
+
+        {/* Timer Display (only if not a survey) */}
+        {setData.title.toLowerCase() !== "survey" && timer !== null && !submitted && (
+          <Typography
+            textAlign="center"
+            variant="h6"
+            color={timeUp ? "error" : "primary"}
+            sx={{ mb: 2 }}
+          >
+            Time Remaining: {Math.floor(timer / 60)
+              .toString()
+              .padStart(2, "0")}
+            :
+            {(timer % 60).toString().padStart(2, "0")}
+          </Typography>
+        )}
+
         {/* Title */}
         <Typography
           variant={isMobile ? "h5" : "h4"}
@@ -209,19 +276,21 @@ const QuestionSetView = () => {
 
         <Divider sx={{ mb: 4 }} />
 
-        {/* ✅ Rest of your code remains unchanged */}
         {submitted ? (
           <Fade in={submitted}>
             <Box textAlign="center" mt={3}>
               <Typography variant="h6" color="success.main" gutterBottom>
                 🎉 Thank you, <b>{userName}</b>, for submitting!
               </Typography>
+
+              {/* Show score only if not a survey */}
               {setData.title.toLowerCase() !== "survey" && score && (
                 <Typography variant="h6" mt={2}>
                   You scored <b>{score.correct}</b> / <b>{score.total}</b> (
                   <b>{score.percentage}%</b>)
                 </Typography>
               )}
+
               <Button
                 sx={{ mt: 4 }}
                 variant="outlined"
@@ -232,6 +301,12 @@ const QuestionSetView = () => {
                   setScore(null);
                   setUserName("");
                   setUserAvailable(null);
+
+                  // Reset timer only if not a survey
+                  if (setData.title.toLowerCase() !== "survey") {
+                    setTimer(setData.timeLimit);
+                    setTimeUp(false);
+                  }
                 }}
               >
                 Retry
@@ -257,6 +332,7 @@ const QuestionSetView = () => {
                       : "red",
                 },
               }}
+              disabled={timeUp}
             />
             {userAvailable === false && (
               <Typography color="error" variant="caption">
@@ -280,6 +356,7 @@ const QuestionSetView = () => {
                   backgroundColor: theme.palette.background.default,
                   transition: "0.2s",
                   "&:hover": { boxShadow: theme.shadows[4] },
+                  opacity: timeUp ? 0.5 : 1,
                 }}
               >
                 <Typography
@@ -304,10 +381,9 @@ const QuestionSetView = () => {
                         label={opt}
                         sx={{
                           mb: 1,
-                          "& .MuiFormControlLabel-label": {
-                            fontWeight: 500,
-                          },
+                          "& .MuiFormControlLabel-label": { fontWeight: 500 },
                         }}
+                        disabled={timeUp}
                       />
                     ))}
                   </RadioGroup>
@@ -324,12 +400,13 @@ const QuestionSetView = () => {
                     color="primary"
                     size={isMobile ? "medium" : "large"}
                     sx={{ py: 1.5, px: 5, fontWeight: 600, mt: 2 }}
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit(false)}
                     disabled={
                       !userName.trim() ||
                       !allQuestionsAnswered ||
                       userAvailable === false ||
-                      checkingUser
+                      checkingUser ||
+                      timeUp
                     }
                   >
                     Submit Answers

@@ -68,6 +68,7 @@ const Navbar = () => {
       ]
     : [
         { text: "Home", path: "/home" },
+        { text: "Files", path: "/user-file" },
         { text: "Create Question", path: "/create-question" },
         {
           text: "Answers",

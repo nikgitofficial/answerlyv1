@@ -132,3 +132,14 @@ export const getUserFilesCount = async (req, res) => {
     res.status(500).json({ error: "Failed to count files" });
   }
 };
+
+// 📊 Get total files uploaded by all users
+export const getAllFilesCount = async (req, res) => {
+  try {
+    const count = await File.countDocuments(); // counts all files
+    res.status(200).json({ totalFiles: count });
+  } catch (err) {
+    console.error("Failed to count files:", err);
+    res.status(500).json({ error: "Failed to count files" });
+  }
+};

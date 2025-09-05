@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Navbar from "../components/Navbar";
 import {
   Container, Typography, Button, Box,
   IconButton, Table, TableBody,
@@ -147,6 +148,8 @@ const UserFileUploader = () => {
   );
 
   return (
+    <>
+     <Navbar /> 
     <Box sx={{
       position: 'absolute',
       top: '50%',
@@ -362,6 +365,7 @@ const UserFileUploader = () => {
         </Dialog>
       </Container>
     </Box>
+    </>
   );
 };
 

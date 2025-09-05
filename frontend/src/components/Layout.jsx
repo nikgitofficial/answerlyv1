@@ -24,7 +24,7 @@ const Layout = ({ children }) => {
     "/profile", "/settings","/about","/accessibility","/analytics","/blog",
     "/careers","/community","/contact","/cookie-banner","/cookie-settings",
     "/docs","/faq","/guides","/privacy","/responses","/security",
-    "/sitemap","/status","/terms","/publichome","/cookies"
+    "/sitemap","/status","/terms","/publichome","/cookies",
   ];
 
   const shouldShowNavbar = showNavbarRoutes.includes(location.pathname);

@@ -40,6 +40,7 @@ const Home = () => {
   const [totalSets, setTotalSets] = useState(null);
   const [totalQuestions, setTotalQuestions] = useState(null);
   const [totalAnswers, setTotalAnswers] = useState(null);
+  const [totalFiles, setTotalFiles] = useState(null); // ✅ Added totalFiles state
   const [loading, setLoading] = useState(true);
 
   const [analyticsData, setAnalyticsData] = useState({
@@ -132,6 +133,15 @@ const Home = () => {
           mostAnsweredQuestion,
           surveyCompletionRate: surveyCompletionRate.toFixed(1),
         });
+
+        // ✅ Fetch total files uploaded
+        try {
+          const filesRes = await axios.get("/user-file");
+          setTotalFiles(filesRes.data.length);
+        } catch (err) {
+          console.error("Error fetching total files:", err);
+        }
+
       } catch (err) {
         console.error("Error fetching stats:", err);
       } finally {
@@ -145,7 +155,6 @@ const Home = () => {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
         <CircularProgress size={60} thickness={5} color="primary" />
-
       </Box>
     );
 
@@ -167,6 +176,12 @@ const Home = () => {
       value: totalAnswers,
       icon: <CheckCircleIcon sx={{ fontSize: 50, color: "#facc15" }} />,
       color: "#fffbeb",
+    },
+    {
+      title: "Total Files Uploaded", // ✅ Added new stat card
+      value: totalFiles,
+      icon: <BarChartIcon sx={{ fontSize: 50, color: "#a78bfa" }} />,
+      color: "#f5f3ff",
     },
   ];
 
@@ -282,7 +297,7 @@ const Home = () => {
                     variant="h4"
                     sx={{ mt: 1, fontWeight: 700, color: theme.palette.text.primary }}
                   >
-                    {stat.value}
+                    {stat.value === null ? <CircularProgress size={24} /> : stat.value}
                   </Typography>
                 </Box>
                 <Box

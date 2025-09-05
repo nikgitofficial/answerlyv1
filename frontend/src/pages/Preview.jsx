@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import Navbar from "../components/Navbar";
 import axios from '../api/axios';
 import {
   Box, Typography, CircularProgress,
@@ -76,6 +77,8 @@ export default function Preview() {
   const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(file.url)}&embedded=true`;
 
   return (
+    <>
+    <navbar/>
     <Box
       sx={{
         position: 'absolute',
@@ -148,5 +151,7 @@ export default function Preview() {
         )}
       </Box>
     </Box>
+</>
+    
   );
-}
+};

@@ -122,3 +122,13 @@ export const downloadFile = async (req, res) => {
     res.status(500).json({ error: 'Failed to generate download link' });
   }
 };
+
+// 📊 Get total files count (NEW)
+export const getUserFilesCount = async (req, res) => {
+  try {
+    const count = await File.countDocuments({ userId: req.userId });
+    res.status(200).json({ totalFiles: count });
+  } catch {
+    res.status(500).json({ error: "Failed to count files" });
+  }
+};

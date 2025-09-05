@@ -17,6 +17,7 @@ import QuizIcon from "@mui/icons-material/Quiz";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import PollIcon from "@mui/icons-material/Poll";
+import DescriptionIcon from "@mui/icons-material/Description"; // ✅ Added for files icon
 import {
   BarChart,
   Bar,
@@ -40,6 +41,7 @@ const Home = () => {
   const [totalSets, setTotalSets] = useState(null);
   const [totalQuestions, setTotalQuestions] = useState(null);
   const [totalAnswers, setTotalAnswers] = useState(null);
+  const [totalFiles, setTotalFiles] = useState(null); // ✅ Added state for files
   const [loading, setLoading] = useState(true);
 
   const [analyticsData, setAnalyticsData] = useState({
@@ -132,6 +134,10 @@ const Home = () => {
           mostAnsweredQuestion,
           surveyCompletionRate: surveyCompletionRate.toFixed(1),
         });
+
+        // ✅ Fetch total files count
+        const filesRes = await axios.get("/files/count");
+        setTotalFiles(filesRes.data.totalFiles);
       } catch (err) {
         console.error("Error fetching stats:", err);
       } finally {
@@ -145,7 +151,6 @@ const Home = () => {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
         <CircularProgress size={60} thickness={5} color="primary" />
-
       </Box>
     );
 
@@ -167,6 +172,12 @@ const Home = () => {
       value: totalAnswers,
       icon: <CheckCircleIcon sx={{ fontSize: 50, color: "#facc15" }} />,
       color: "#fffbeb",
+    },
+    {
+      title: "Total Files Uploaded", // ✅ New stat
+      value: totalFiles,
+      icon: <DescriptionIcon sx={{ fontSize: 50, color: "#a78bfa" }} />,
+      color: "#f5f3ff",
     },
   ];
 

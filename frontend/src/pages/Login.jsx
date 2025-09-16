@@ -1,8 +1,19 @@
 import { useState, useContext, useEffect } from "react";
 import {
-  Container, Box, TextField, Button, Typography,
-  Paper, Divider, Alert, Snackbar, CircularProgress
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  Divider,
+  Alert,
+  Snackbar,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material"; // 👈 Added
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import { AuthContext } from "../context/AuthContext";
@@ -12,6 +23,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👈 toggle state
 
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
@@ -19,7 +31,7 @@ const Login = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      if (user.role === "admin") navigate("/admin"); // ✅ admin redirect
+      if (user.role === "admin") navigate("/admin");
       else navigate("/dashboard");
     }
   }, [user, navigate]);
@@ -96,12 +108,24 @@ const Login = () => {
           <TextField
             name="password"
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"} // 👈 toggle type
             value={form.password}
             onChange={handleChange}
             fullWidth
             required
             margin="normal"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
           <Button
             type="submit"
@@ -112,15 +136,16 @@ const Login = () => {
           >
             {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
           </Button>
-                  <Typography
-  variant="body2"
-  align="right"
-  sx={{ mt: 1, cursor: "pointer" }}
->
-  <Link to="/forgot-password" style={{ textDecoration: "none" }}>
-    Forgot Password?
-  </Link>
-</Typography>
+
+          <Typography
+            variant="body2"
+            align="right"
+            sx={{ mt: 1, cursor: "pointer" }}
+          >
+            <Link to="/forgot-password" style={{ textDecoration: "none" }}>
+              Forgot Password?
+            </Link>
+          </Typography>
         </Box>
 
         <Typography variant="body2" align="center" sx={{ mt: 3 }}>

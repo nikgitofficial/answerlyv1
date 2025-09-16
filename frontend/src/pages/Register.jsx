@@ -9,7 +9,10 @@ import {
   Paper,
   Snackbar,
   Alert,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material"; // 👈 Added
 import axios from "../api/axios";
 
 const Register = () => {
@@ -25,8 +28,9 @@ const Register = () => {
     severity: "success",
   });
 
-  const [passwordValid, setPasswordValid] = useState(false); // ✅ for live validation
-  const [emailError, setEmailError] = useState(""); // ✅ new state for email error
+  const [passwordValid, setPasswordValid] = useState(false); 
+  const [emailError, setEmailError] = useState(""); 
+  const [showPassword, setShowPassword] = useState(false); // 👈 toggle state
 
   const navigate = useNavigate();
 
@@ -69,7 +73,7 @@ const Register = () => {
       setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       if (err.response?.data?.msg === "Email already in use") {
-        setEmailError("❌ Email already exists. Try another one."); // ✅ show below email
+        setEmailError("❌ Email already exists. Try another one."); 
       } else {
         setSnack({
           open: true,
@@ -104,17 +108,29 @@ const Register = () => {
               onChange={handleChange}
               fullWidth
               required
-              error={!!emailError} // ✅ MUI TextField error
-              helperText={emailError} // ✅ show error below field
+              error={!!emailError}
+              helperText={emailError}
             />
             <TextField
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"} // 👈 toggle here
               value={form.password}
               onChange={handleChange}
               fullWidth
               required
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             {/* ✅ Live password validation feedback */}
             {form.password && (
